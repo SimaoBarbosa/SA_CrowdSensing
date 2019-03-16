@@ -2,6 +2,8 @@ var http = require('http')
 var url = require('url')
 var pug = require('pug')
 var firebase = require('firebase')
+var axios = require('axios')
+
 
 http.createServer((req,res)=>{
     // Initialize Firebase
@@ -27,15 +29,35 @@ http.createServer((req,res)=>{
         var userReference = firebase.database().ref("/ProbeData/");
         userReference.on("value", 
                   function(snapshot) {
-                        console.log(snapshot.val());
-                     //   res.json(snapshot.val());
+                        var dados_tratados = new Map();
+                        var data = snapshotToArray(snapshot)
+                        console.log("Número de timestamps:" + data.length)
+                        var number = 0
+                        for ( x in data ) {
+                            if (x> data.length - 10 ) {
+                                number++
+                                for (y in data[x].probes)
+                                    dados_tratados.set(data[x].probes[y].mac, data[x].probes[y])
+                            }
+                        }
+                        //console.dir(dados_tratados)
+                        console.log("Número de timestamps tratados: " + number)
+                        console.log("Número de macs: " +  dados_tratados.size)
                         userReference.off("value");
-                        }, 
+                        
+                        var mobiles = ["mobile","samsung","tct","liteon","huawei","xiaomi","motorola","sony","plus-one"]  
+                        dados_tratados.forEach(mac => {
+                           // console.log(mac.mac)
+                            axios.get('http://macvendors.co/api/' + mac.mac + "/json")
+                                .then(vendor => {
+                                    console.log (vendor.data.result.company)
+                                })
+                                .catch(error => res.render('error', { e: error }))
+                        })
+                    }, 
                   function (errorObject) {
                         console.log("The read failed: " + errorObject.code);
-                      //  res.write("The read failed: " + errorObject.code);
                  });
-        
 
 
         var salas = ["sala1 : 20/30", "sala2 : 30/30"]  //exemplo
@@ -53,3 +75,16 @@ http.createServer((req,res)=>{
 }).listen(5555, ()=>{
     console.log('Servidor á escuta na porta 5555...')
 })
+
+function snapshotToArray(snapshot) {
+    var returnArr = [];
+
+    snapshot.forEach(function(childSnapshot) {
+        var item = childSnapshot.val();
+        item.key = childSnapshot.key;
+
+        returnArr.push(item);
+    });
+
+    return returnArr;
+};
