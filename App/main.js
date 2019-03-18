@@ -23,6 +23,8 @@ http.createServer((req,res)=>{
     var ourl = url.parse(req.url)
     if(ourl.pathname == '/'||ourl.pathname == '/index'){
         
+        
+        res.writeHead(200,{'Content-Type': 'text/html'})
 
         // Recolha de dados da BD da firebase
         console.log("HTTP Get Request");
@@ -44,13 +46,32 @@ http.createServer((req,res)=>{
                         console.log("Número de timestamps tratados: " + number)
                         console.log("Número de macs: " +  dados_tratados.size)
                         userReference.off("value");
-                        
-                        var mobiles = ["mobile","samsung","tct","liteon","huawei","xiaomi","motorola","sony","plus-one"]  
+                        var j = 0
+                        var people_on_room = 0    
+                        var mobiles = ["mobile","samsung","tct","liteon","huawei","xiaomi","motorola","sony","plus-one","alcatel"]  
                         dados_tratados.forEach(mac => {
                            // console.log(mac.mac)
                             axios.get('http://macvendors.co/api/' + mac.mac + "/json")
                                 .then(vendor => {
-                                    console.log (vendor.data.result.company)
+                                    j=j+1
+                                    var marcaDet =  vendor.data.result.company
+                                    for(var a = 0; a < mobiles.length; a++)  {
+                                        var regex = new RegExp(mobiles[a], 'i')
+                                        if(regex.test(marcaDet) && mac.rssi > -80 ) {
+                                            console.log(marcaDet) 
+                                            console.log(mac.rssi)
+                                            people_on_room=people_on_room+1
+                                            
+                                        }
+                                        else dados_tratados.delete(mac)
+                                    }
+                                    if (j==dados_tratados.size) {
+                                        console.log("final: " + people_on_room);
+                                        var salas = ["Sala aberta DI : "+ people_on_room ]
+                                        res.write(pug.renderFile('page.pug',{salas: salas }))
+                                        res.end()
+                                    }
+                                    
                                 })
                                 .catch(error => res.render('error', { e: error }))
                         })
@@ -60,10 +81,8 @@ http.createServer((req,res)=>{
                  });
 
 
-        var salas = ["sala1 : 20/30", "sala2 : 30/30"]  //exemplo
-        res.writeHead(200,{'Content-Type': 'text/html'})
-        res.write(pug.renderFile('page.pug',{salas: salas }))
-        res.end()  
+        
+   //     res.end()  
     }
     else{
         res.writeHead(200,{'Content-Type': 'text/html'})
