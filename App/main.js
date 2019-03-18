@@ -47,6 +47,8 @@ http.createServer((req,res)=>{
                         console.log("Número de timestamps tratados: " + number)
                         console.log("Número de macs: " +  dados_tratados.size)
                         userReference.off("value");
+                        var limit_rssi = -84
+                        var n_apple = 0
                         var j = 0   
                         var mobiles = ["mobile","samsung","tct","liteon","huawei","xiaomi","motorola","sony","plus-one","alcatel"]  
                         dados_tratados.forEach(mac => {
@@ -57,21 +59,43 @@ http.createServer((req,res)=>{
                                     var marcaDet =  vendor.data.result.company
                                     for(var a = 0; a < mobiles.length; a++)  {
                                         var regex = new RegExp(mobiles[a], 'i')
-                                        if(regex.test(marcaDet) && mac.rssi > -80 ) {
-                                            console.log(marcaDet) 
-                                            console.log(mac.rssi)
+                                        var regexApple = new RegExp("apple", 'i')
+
+                                        var testaRSSIeVendor =(regex.test(marcaDet) || (!marcaDet) )   && mac.rssi > limit_rssi
+
+                                        if(testaRSSIeVendor) {
+
+                                       //     console.log(marcaDet) 
+                                        //    console.log(mac.rssi)
                                             mac.vendor = marcaDet
                                             macs_aceites.set(mac.mac,mac)
                                             
                                         }
-                                        else dados_tratados.delete(mac)
+                                     //   else dados_tratados.delete(mac)
+                                    }
+                                    if(regexApple.test(marcaDet) && mac.rssi > limit_rssi ){
+                                        console.log(marcaDet);
+                                        
+                                        n_apple=n_apple+1
                                     }
                                     if (j==dados_tratados.size) {
                                         
                                         console.dir(macs_aceites);
                                         
-                                        console.log("final: " + macs_aceites.size);
-                                        var salas = ["Sala aberta DI : "+ macs_aceites.size ]
+                                        console.log("N_apples : "+ n_apple );
+                                        
+                                        var apples_telemóveis =  Math.round(n_apple/4)
+                                        console.log("final: " + (macs_aceites.size + apples_telemóveis));
+                                        console.log("David:");
+                                        
+                                        console.dir(macs_aceites.get("24:92:0e:c2:bd:98"));
+                                        
+                                        console.log("David:");
+                                        
+                                        console.dir(dados_tratados.get("00:9a:cd:6a:a6:b4"));
+                                        console.dir(macs_aceites.get("00:9a:cd:6a:a6:b4"));
+                                        
+                                        var salas = ["Sala aberta DI : "+ (macs_aceites.size + apples_telemóveis) ]
                                         res.write(pug.renderFile('page.pug',{salas: salas }))
                                         res.end()
                                     }
