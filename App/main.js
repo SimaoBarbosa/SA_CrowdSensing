@@ -32,6 +32,7 @@ http.createServer((req,res)=>{
         userReference.on("value", 
                   function(snapshot) {
                         var dados_tratados = new Map();
+                        var macs_aceites = new Map();
                         var data = snapshotToArray(snapshot)
                         console.log("Número de timestamps:" + data.length)
                         var number = 0
@@ -46,8 +47,7 @@ http.createServer((req,res)=>{
                         console.log("Número de timestamps tratados: " + number)
                         console.log("Número de macs: " +  dados_tratados.size)
                         userReference.off("value");
-                        var j = 0
-                        var people_on_room = 0    
+                        var j = 0   
                         var mobiles = ["mobile","samsung","tct","liteon","huawei","xiaomi","motorola","sony","plus-one","alcatel"]  
                         dados_tratados.forEach(mac => {
                            // console.log(mac.mac)
@@ -60,14 +60,18 @@ http.createServer((req,res)=>{
                                         if(regex.test(marcaDet) && mac.rssi > -80 ) {
                                             console.log(marcaDet) 
                                             console.log(mac.rssi)
-                                            people_on_room=people_on_room+1
+                                            mac.vendor = marcaDet
+                                            macs_aceites.set(mac.mac,mac)
                                             
                                         }
                                         else dados_tratados.delete(mac)
                                     }
                                     if (j==dados_tratados.size) {
-                                        console.log("final: " + people_on_room);
-                                        var salas = ["Sala aberta DI : "+ people_on_room ]
+                                        
+                                        console.dir(macs_aceites);
+                                        
+                                        console.log("final: " + macs_aceites.size);
+                                        var salas = ["Sala aberta DI : "+ macs_aceites.size ]
                                         res.write(pug.renderFile('page.pug',{salas: salas }))
                                         res.end()
                                     }
