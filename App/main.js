@@ -3,25 +3,25 @@ var url = require('url')
 var pug = require('pug')
 var firebase = require('firebase')
 var axios = require('axios')
-
+var fs = require("fs")
 
 http.createServer((req,res)=>{
-    // Initialize Firebase
-    var config = {
-        apiKey: "AIzaSyDHVN5SqH3YanLDsn_wxb2IDjoBZKNvpn0",
-        authDomain: "sa1819.firebaseapp.com",
-        databaseURL: "https://sa1819.firebaseio.com",
-        projectId: "sa1819",
-        storageBucket: "sa1819.appspot.com",
-        messagingSenderId: "618709967178"
-    };
-    if (!firebase.apps.length) {
-        firebase.initializeApp(config);
-    }
-
-    
     var ourl = url.parse(req.url)
+    var regexImg = new RegExp("images/", 'i')
     if(ourl.pathname == '/'||ourl.pathname == '/index'){
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyDHVN5SqH3YanLDsn_wxb2IDjoBZKNvpn0",
+            authDomain: "sa1819.firebaseapp.com",
+            databaseURL: "https://sa1819.firebaseio.com",
+            projectId: "sa1819",
+            storageBucket: "sa1819.appspot.com",
+            messagingSenderId: "618709967178"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(config);
+        }
+
         
         
         res.writeHead(200,{'Content-Type': 'text/html'})
@@ -47,7 +47,7 @@ http.createServer((req,res)=>{
                         console.log("Número de timestamps tratados: " + number)
                         console.log("Número de macs: " +  dados_tratados.size)
                         userReference.off("value");
-                        var limit_rssi = -84
+                        var limit_rssi = -80
                         var n_apple = 0
                         var j = 0   
                         var mobiles = ["mobile","samsung","tct","liteon","huawei","xiaomi","motorola","sony","plus-one","alcatel"]  
@@ -94,9 +94,9 @@ http.createServer((req,res)=>{
                                         
                                         console.dir(dados_tratados.get("00:9a:cd:6a:a6:b4"));
                                         console.dir(macs_aceites.get("00:9a:cd:6a:a6:b4"));
-                                        
-                                        var salas = ["Sala aberta DI : "+ (macs_aceites.size + apples_telemóveis) ]
-                                        res.write(pug.renderFile('page.pug',{salas: salas }))
+                                        var img = "images/livre_semfundo.png"
+                                        var sala = "Sala aberta DI : "+ (macs_aceites.size + apples_telemóveis) + " pessoas de 35!" 
+                                        res.write(pug.renderFile('page.pug',{sala: sala ,img : img}))
                                         res.end()
                                     }
                                     
@@ -110,9 +110,25 @@ http.createServer((req,res)=>{
 
 
         
-   //     res.end()  
     }
-    else{
+    else if(regexImg.test( ourl.pathname) ){
+        console.log("Get Images!!");
+        
+        fs.readFile( "."+req.url ,(erro2,dados)=>{
+            
+            if(!erro2){
+                res.writeHead(200,{'Content-Type': 'image/png'})
+                
+                res.write(dados)
+                res.end()
+            }
+            else{
+                console.log("Erro ler BD!"+ erro2)
+                res.end()
+            }
+        })
+    }
+    else {
         res.writeHead(200,{'Content-Type': 'text/html'})
         res.write(pug.renderFile('erro.pug',{e:"Pedido desconhecido:" + ourl.pathname}))
         res.write('<p><b>Erro, pedido desconhecido: </b> ' + ourl.pathname + '</p>')
