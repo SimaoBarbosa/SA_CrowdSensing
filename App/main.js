@@ -86,16 +86,18 @@ http.createServer((req,res)=>{
                                         
                                         var apples_telemóveis =  Math.round(n_apple/4)
                                         console.log("final: " + (macs_aceites.size + apples_telemóveis));
-                                        console.log("David:");
                                         
-                                        console.dir(macs_aceites.get("24:92:0e:c2:bd:98"));
-                                        
-                                        console.log("David:");
-                                        
-                                        console.dir(dados_tratados.get("00:9a:cd:6a:a6:b4"));
-                                        console.dir(macs_aceites.get("00:9a:cd:6a:a6:b4"));
-                                        var img = "images/livre_semfundo.png"
-                                        var sala = "Sala aberta DI : "+ (macs_aceites.size + apples_telemóveis) + " pessoas de 35!" 
+                                        var n_pessoas = macs_aceites.size + apples_telemóveis
+                                        var img =""
+                                        if (n_pessoas<15)
+                                            img = "images/Green.gif"
+                                        else{
+                                             if(n_pessoas<30)
+                                                img = "images/Yellow.gif"
+                                             else
+                                                img = "images/Red.gif"
+                                        }
+                                        var sala = "Sala aberta DI : "+ n_pessoas + " pessoas" 
                                         res.write(pug.renderFile('page.pug',{sala: sala ,img : img}))
                                         res.end()
                                     }
@@ -117,7 +119,7 @@ http.createServer((req,res)=>{
         fs.readFile( "."+req.url ,(erro2,dados)=>{
             
             if(!erro2){
-                res.writeHead(200,{'Content-Type': 'image/png'})
+                res.writeHead(200,{'Content-Type': 'image/gif'})
                 
                 res.write(dados)
                 res.end()
