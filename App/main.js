@@ -97,7 +97,9 @@ http.createServer((req,res)=>{
                                              else
                                                 img = "images/Red.gif"
                                         }
-                                        var sala = "Sala aberta DI : "+ n_pessoas + " pessoas" 
+                                        var ocupacao = Math.round((n_pessoas/35)*100)
+                                        if (ocupacao>100) ocupacao =100
+                                        var sala = "Ocupação sala aberta DI : "+ ocupacao + "%" 
                                         res.write(pug.renderFile('page.pug',{sala: sala ,img : img}))
                                         res.end()
                                     }
